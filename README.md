@@ -14,7 +14,7 @@ If the user aborts selection then choowm will stop.
 
 This script enables fast switching
 between different window managers
-without having to authenicate.
+without having to authenticate.
 Run it as the last command in your `~/.xinitrc` file.
 
 ## Screenshots
