@@ -1,0 +1,203 @@
+#!/bin/bash
+#
+# Show a graphical dialog to the user with a list of
+# all the installed window managers for this system.
+# If the user chooses one then run it and wait.
+# Repeat the cycle until the user cancels.
+# Put this as the last command in your ~/.xinitrc.
+#
+# Copyright Bert Gijsbers
+# Apache 2.0 license
+#
+
+# we need either of the following dialog helpers:
+xmessage=$(command -v xmessage)
+zenity=$(command -v zenity)
+# [ -n "$xmessage" ] && unset zenity
+
+# a list of all known window managers:
+declare -a WIMS=(
+2bwm
+2wm
+3Dwm
+9wm
+aewm
+aewm++
+afterstep
+ahwm
+ajaxwm
+alloywm
+alopex
+alpt-wm
+amaterus
+amiwm
+antico
+awesome
+badwm
+beryl
+blackbox
+bluetile
+braintop
+bspwm
+byobu
+catwm
+cinnamon-session
+compiz
+ctwm
+cwm
+dminiwm
+dswm
+dvtm
+dwemo
+dwm
+echinus
+eggwm
+enlightenment_start
+euclid-wm
+evilwm
+fluxbox
+flwm
+frankenwm
+fvwm2
+gnome-session
+goomwwm
+hazewm
+herbstluftwm
+howm
+i3
+icewm-session
+ion
+ion3
+jbwm
+jwm
+karmen
+larswm
+lwm
+marco
+mate-session
+metisse
+miwm
+mlvwm
+monsterwm
+mutter
+notion
+olvwm
+openbox-session
+oroborus
+pawm
+pekwm
+qtile
+qvwm
+sawfish
+scrotwm
+spectrwm
+starte16
+startede
+startfluxbox
+startkde
+startlxde
+startxfce4
+stumpwm
+tinywm
+twm
+unity
+uwm
+windowlab
+windowmaker
+wm2
+wmfs
+wmfs2
+wmii
+xfwm4
+xmonad
+)
+
+errx () { echo "$@" >&2 ; exit 1 ; }
+fail () { errx "${0##*/}: $@" ; }
+abort () { fail "Aborted." ; }
+nowim () { fail "No window manager found!" ; }
+usage () { errx "Usage: $0 [ -n ]" ; }
+
+# parse options
+for a; do
+    case "$a" in
+        -n) dryrun=1 ;;
+        *) usage ;;
+    esac
+done
+
+# remember wm names with executables
+declare -a names
+declare -a paths
+
+# locate every window manager
+for w in "${WIMS[@]}"; do
+    if p=$(command -v $w); then
+        n=${w#start}
+        n=${n%_start}
+        n=${n%-session}
+        names+=($n)
+        paths+=($p)
+    fi
+done
+
+# abort if no window managers
+[ ${#names[@]} -lt 1 ] && nowim
+
+# create a new tempfile
+temp=$(mktemp)
+
+# on exit cleanup this tempfile
+trap 'rm -f "$temp"' 0
+
+# construct a dialog with window managers to choose from
+if [ -n "$zenity" ]; then
+    cat >>$temp <<-'EOF'
+	exec zenity --list \
+            --width=400 \
+            --height=400 \
+            --hide-column=1 \
+            --print-column=1 \
+	    --title="Choose window manager" \
+            --text="Please choose one of the following window managers:" \
+	    --column="#" \
+	    --column="Name" \
+	    --column="Location" \
+EOF
+    for ((i=0; $i < ${#names[@]}; i++)) ; do
+        printf '%6d  "%s"  "%s" \\\n' $i "${names[$i]}" "${paths[$i]}"
+    done >> $temp
+    echo >> $temp
+    butn=$(sh $temp 2>/dev/null)
+elif [ -n "$xmessage" ]; then
+    printf "Please choose one of the following window managers:\n\n" >>$temp
+    unset btns
+    for ((i=0; $i < ${#names[@]}; i++)) ; do
+        printf "%2d  %-11s  %s\n" $i "${names[$i]}" "${paths[$i]}"
+        [ -v btns ] && btns+=,
+        btns+=$i
+    done >> $temp
+    echo >> $temp
+    butn=$(xmessage -title 'Choose window manager' \
+        -font 9x15bold -center -print \
+        -buttons $btns,Cancel -default 0 -file $temp)
+else
+    fail "Please install zenity or xmessage."
+fi
+x=$?
+[[ $x = 1 || ! "$butn" =~ ^[0-9]+$ ]] && abort
+[[ $butn -ge ${#names[@]} ]] && abort
+wim="${paths[$butn]}"
+
+# -n option only echoes
+[ "$dryrun" = 1 ] && { echo "$wim" ; exit 0; }
+
+# run window manager
+"$wim"
+
+# log wm exit
+echo "$wim exited $?"
+
+# restart
+exec "$0"
+
