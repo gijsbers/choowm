@@ -16,3 +16,15 @@ This script enables fast switching
 between different window managers
 without having to authenicate.
 Run it as the last command in your `~/.xinitrc` file.
+
+## Screenshots
+
+By default `zenity` will be used to show the dialog
+if it is installed:
+
+![choowm using zenity](/images/choowm-zenity.png)
+
+Otherwise `xmessage` is used:
+
+![choowm using xmessage](/images/choowm-xmessage.png)
+
