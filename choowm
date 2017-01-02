@@ -3,7 +3,7 @@
 # Show a graphical dialog to the user with a list of
 # all the installed window managers for this system.
 # If the user chooses one then run it and wait.
-# Repeat the cycle until the user cancels.
+# Repeat this cycle until the user cancels.
 # Put this as the last command in your ~/.xinitrc.
 #
 # Copyright Bert Gijsbers
@@ -116,14 +116,16 @@ errx () { echo "$@" >&2 ; exit 1 ; }
 fail () { errx "${0##*/}: $@" ; }
 abort () { fail "Aborted." ; }
 nowim () { fail "No window manager found!" ; }
-usage () { errx "Usage: $0 [ -n ]" ; }
+usage () { errx "Usage: $0 [ -n | -i initialwm ]" ; }
 
 # parse options
-for a; do
-    case "$a" in
+while [ $# -gt 0 ]; do
+    case "$1" in
         -n) dryrun=1 ;;
+        -i) initial=$2 ; shift ;;
         *) usage ;;
     esac
+    shift
 done
 
 # remember wm names with executables
@@ -136,6 +138,9 @@ for w in "${WIMS[@]}"; do
         n=${w#start}
         n=${n%_start}
         n=${n%-session}
+        if [[ "$w" = "$initial" || "$n" = "$initial" ]]; then
+            hasinit=${#names[@]}
+        fi
         names+=($n)
         paths+=($p)
     fi
@@ -148,10 +153,13 @@ done
 temp=$(mktemp)
 
 # on exit cleanup this tempfile
-trap 'rm -f "$temp"' 0
+trap 'rm -f -- "$temp"' 0
 
-# construct a dialog with window managers to choose from
-if [ -n "$zenity" ]; then
+if [ -n "$hasinit" ]; then
+    # the button has been given
+    butn=$hasinit
+elif [ -n "$zenity" ]; then
+    # construct a zenity dialog
     cat >>$temp <<-'EOF'
 	exec zenity --list \
             --width=400 \
@@ -170,6 +178,7 @@ EOF
     echo >> $temp
     butn=$(sh $temp 2>/dev/null)
 elif [ -n "$xmessage" ]; then
+    # construct an xmessage dialog
     printf "Please choose one of the following window managers:\n\n" >>$temp
     unset btns
     for ((i=0; $i < ${#names[@]}; i++)) ; do

@@ -17,6 +17,11 @@ between different window managers
 without having to authenticate.
 Run it as the last command in your `~/.xinitrc` file.
 
+Choowm accepts the following command line options:
+
+- -i initialwm: This gives the window manager which is to be run immediately on startup, bypassing the dialog selection process once. Only if this window manager exits is the selection dialog presented.
+- -n: No execution. This _dryrun_ option only prints the select window manager and then exits. This is used for testing.
+
 ## Screenshots
 
 By default `zenity` will be used to show the dialog
