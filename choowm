@@ -118,6 +118,8 @@ abort () { fail "Aborted." ; }
 nowim () { fail "No window manager found!" ; }
 usage () { errx "Usage: $0 [ -n | -i initialwm ]" ; }
 
+unset butn btns dryrun hasinit initial names paths temp wim
+
 # parse options
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -180,7 +182,6 @@ EOF
 elif [ -n "$xmessage" ]; then
     # construct an xmessage dialog
     printf "Please choose one of the following window managers:\n\n" >>$temp
-    unset btns
     for ((i=0; $i < ${#names[@]}; i++)) ; do
         printf "%2d  %-11s  %s\n" $i "${names[$i]}" "${paths[$i]}"
         [ -v btns ] && btns+=,
