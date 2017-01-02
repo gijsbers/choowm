@@ -13,9 +13,11 @@
 # we need either of the following dialog helpers:
 xmessage=$(command -v xmessage)
 zenity=$(command -v zenity)
-# [ -n "$xmessage" ] && unset zenity
+# [[ -n $xmessage ]] && unset zenity
 
-# a list of all known window managers:
+# a list of all known window managers.
+# a wm may have an absolute path.
+# a wm may have arguments when quoted.
 declare -a WIMS=(
 2bwm
 2wm
@@ -121,10 +123,10 @@ usage () { errx "Usage: $0 [ -n | -i initialwm ]" ; }
 unset butn btns dryrun hasinit initial names paths temp wim
 
 # parse options
-while [ $# -gt 0 ]; do
-    case "$1" in
+while [[ $# -gt 0 ]]; do
+    case $1 in
         -n) dryrun=1 ;;
-        -i) initial=$2 ; shift ;;
+        -i) [[ -n $2 ]] || usage ; initial=$2 ; shift ;;
         *) usage ;;
     esac
     shift
@@ -134,18 +136,40 @@ done
 declare -a names
 declare -a paths
 
-# locate every window manager
+# locate every known window manager
 for w in "${WIMS[@]}"; do
-    if p=$(command -v $w); then
-        n=${w#start}
-        n=${n%_start}
-        n=${n%-session}
-        if [[ "$w" = "$initial" || "$n" = "$initial" ]]; then
-            hasinit=${#names[@]}
-        fi
-        names+=($n)
-        paths+=($p)
+    # absolute path?
+    if [[ $w =~ / ]]; then
+        # get basename
+        n=${w##*/}
+        # remove arguments
+        n=${n/ *}
+        # absolute path
+        p=${w%/*}/$n
+        # executable file
+        [[ -x $p && -f $p ]] || continue
+    else
+        # remove arguments
+        n=${w/ *}
+        # locate path
+        p=$(command -v $n) || continue
+        # include arguments
+        w=${p%/*}/$w
     fi
+    # s is n without pre/postfix
+    s=${n#start}
+    s=${s%_start}
+    s=${s%-session}
+    if [[ -v initial && ! -v hasinit ]]; then
+        if [[ $p = $initial || $n = $initial || $s = $initial ]]; then
+            # remember wm index
+            : ${hasinit:=${#names[@]}}
+        fi
+    fi
+    # remember wm name and location
+    names+=("$s")
+    paths+=("$w")
+    unset n p s w x
 done
 
 # abort if no window managers
@@ -157,19 +181,19 @@ temp=$(mktemp)
 # on exit cleanup this tempfile
 trap 'rm -f -- "$temp"' 0
 
-if [ -n "$hasinit" ]; then
+if [[ -n $hasinit ]]; then
     # the button has been given
     butn=$hasinit
-elif [ -n "$zenity" ]; then
+elif [[ -n $zenity ]]; then
     # construct a zenity dialog
     cat >>$temp <<-'EOF'
 	exec zenity --list \
-            --width=400 \
-            --height=400 \
-            --hide-column=1 \
-            --print-column=1 \
+	    --width=400 \
+	    --height=400 \
+	    --hide-column=1 \
+	    --print-column=1 \
 	    --title="Choose window manager" \
-            --text="Please choose one of the following window managers:" \
+	    --text="Please choose one of the following window managers:" \
 	    --column="#" \
 	    --column="Name" \
 	    --column="Location" \
@@ -179,12 +203,12 @@ EOF
     done >> $temp
     echo >> $temp
     butn=$(sh $temp 2>/dev/null)
-elif [ -n "$xmessage" ]; then
+elif [[ -n $xmessage ]]; then
     # construct an xmessage dialog
     printf "Please choose one of the following window managers:\n\n" >>$temp
     for ((i=0; $i < ${#names[@]}; i++)) ; do
         printf "%2d  %-11s  %s\n" $i "${names[$i]}" "${paths[$i]}"
-        [ -v btns ] && btns+=,
+        [[ -v btns ]] && btns+=,
         btns+=$i
     done >> $temp
     echo >> $temp
@@ -195,15 +219,15 @@ else
     fail "Please install zenity or xmessage."
 fi
 x=$?
-[[ $x = 1 || ! "$butn" =~ ^[0-9]+$ ]] && abort
+[[ $x = 1 || ! $butn =~ ^[0-9]+$ ]] && abort
 [[ $butn -ge ${#names[@]} ]] && abort
 wim="${paths[$butn]}"
 
 # -n option only echoes
-[ "$dryrun" = 1 ] && { echo "$wim" ; exit 0; }
+[[ $dryrun = 1 ]] && { echo "$wim" ; exit 0; }
 
 # run window manager
-"$wim"
+$wim
 
 # log wm exit
 echo "$wim exited $?"
