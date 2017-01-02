@@ -13,7 +13,6 @@
 # we need either of the following dialog helpers:
 xmessage=$(command -v xmessage)
 zenity=$(command -v zenity)
-# [[ -n $xmessage ]] && unset zenity
 
 # a list of all known window managers.
 # a wm may have an absolute path.
@@ -221,10 +220,10 @@ fi
 x=$?
 [[ $x = 1 || ! $butn =~ ^[0-9]+$ ]] && abort
 [[ $butn -ge ${#names[@]} ]] && abort
-wim="${paths[$butn]}"
+wim=${paths[$butn]}
 
 # -n option only echoes
-[[ $dryrun = 1 ]] && { echo "$wim" ; exit 0; }
+[[ $dryrun = 1 ]] && exec echo "$wim"
 
 # run window manager
 $wim
