@@ -19,8 +19,16 @@ Run it as the last command in your `~/.xinitrc` file.
 
 Choowm accepts the following command line options:
 
-- -i initialwm: This gives the window manager which is to be run immediately on startup, bypassing the dialog selection process once. Only if this window manager exits is the selection dialog presented.
-- -n: No execution. This _dryrun_ option only prints the select window manager and then exits. This is used for testing.
+- -i initialwm: This forces the given window
+manager to be run immediately on startup,
+bypassing the dialog selection process once. Only
+if this window manager exits is the selection
+dialog presented.
+- -l: Just print a listing of the available
+window managers to stdout and exit.
+- -n: No execution. This _dryrun_ option only
+prints the selected window manager and then
+exits. This is used for testing.
 
 ## Screenshots
 

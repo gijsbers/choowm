@@ -1,0 +1,54 @@
+#!/bin/bash
+
+i3=$(command -v i3)
+
+errx () { echo "$@" >&2 ; exit 1 ; }
+fail () { errx "${0##*/}: $@" ; }
+usage () { errx "Usage: $0" ; }
+
+[[ $# -eq 0 ]] || usage
+[[ -x $i3 ]] || fail "Missing i3 ($i3)."
+
+newtest () { let num++; }
+testend () {
+    if [[ $? == 0 ]]; then
+        x=OK ; let okay++
+    else
+        x=FAIL ; let fail++
+    fi
+    printf 'test %d  %s\n' $num $x
+}
+
+tmp=./choowm$RANDOM$$
+trap 'rm -f -- "$tmp"' 0 >$tmp || exit 1
+
+newtest
+[[ $(./choowm -l | wc -l) -gt 1 ]]
+testend
+
+newtest
+[[ $(./choowm -n -i i3) == $i3 ]]
+testend
+
+newtest
+sed -e 's|^i3$|"i3 -C"|' < choowm > $tmp
+[[ $(bash $tmp -n -i i3) == "$i3 -C" ]]
+testend
+
+newtest
+sed -e "s|^i3$|$i3|" < choowm > $tmp
+[[ $(bash $tmp -n -i i3) == "$i3" ]]
+testend
+
+newtest
+sed -e 's|^i3$|"'$i3' -C"|' < choowm > $tmp
+[[ $(bash $tmp -n -i i3) == "$i3 -C" ]]
+testend
+
+if [[ $okay -eq $num && $fail -eq 0 ]]; then
+    echo "All tests passed."
+    exit 0
+else
+    echo "$fail out of $num tests failed."
+    exit 1
+fi
