@@ -59,6 +59,7 @@ eggwm
 enlightenment_start
 euclid-wm
 evilwm
+exwm
 fluxbox
 flwm
 frankenwm
@@ -82,6 +83,8 @@ lxqt
 marco
 matchbox
 mate-session
+matwm2
+mazewm
 metacity
 metisse
 miwm
@@ -102,6 +105,8 @@ ratpoison
 razor-session
 sawfish
 scrotwm
+smallwm
+snapwm
 spectrwm
 starte16
 startede
@@ -111,11 +116,13 @@ startlxde
 startxfce4
 stumpwm
 sway
+tabletwm
 teslawm
 tinywm
 twm
 unity
 uwm
+velox
 waimea
 windowlab
 windowmaker
@@ -125,8 +132,20 @@ wm2
 wmfs
 wmfs2
 wmii
+wtftw
 xfwm4
+xige
 xmonad
+xoat
+xpde
+xswm
+xtags
+xwem
+xynth
+yawm
+yeahwm
+zde
+zwm
 )
 
 errx () { echo "$@" >&2 ; exit 1 ; }
