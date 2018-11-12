@@ -22,6 +22,7 @@ declare -a WIMS=(
 2wm
 3Dwm
 9wm
+adwm
 aewm
 aewm++
 afterstep
@@ -37,6 +38,7 @@ awesome
 awm
 badwm
 beryl
+beryl-xgl
 blackbox
 bluetile
 braintop
@@ -45,6 +47,7 @@ byobu
 bwm
 catwm
 cinnamon-session
+clfswm
 compiz
 cons-wm
 ctwm
@@ -70,6 +73,7 @@ hazewm
 herbstluftwm
 howm
 i3
+i3-gaps
 icewm-session
 ion
 ion3
@@ -78,6 +82,7 @@ jwm
 karmen
 kwin
 larswm
+lumina
 lwm
 lxqt
 marco
@@ -91,13 +96,16 @@ miwm
 mlvwm
 monsterwm
 musca
+muffin
 mutter
 notion
 olvwm
 openbox-session
 oroborus
+page
 pawm
 pekwm
+plwm
 pwm
 qtile
 qvwm
@@ -115,14 +123,19 @@ startkde
 startlxde
 startxfce4
 stumpwm
+subtle
 sway
+sway-gaps
 tabletwm
 teslawm
 tinywm
+treewm
+tvtwm
 twm
 unity
 uwm
 velox
+vtwm
 waimea
 windowlab
 windowmaker
@@ -138,6 +151,7 @@ xige
 xmonad
 xoat
 xpde
+xpra
 xswm
 xtags
 xwem
@@ -268,6 +282,11 @@ trap '' 0
 
 # -n option only echoes
 [[ $dryrun = 1 ]] && exec echo "$wim"
+
+if [[ $wim =~ ^/ ]]; then
+    dir=$(dirname $wim)
+    PATH=$dir:$PATH
+fi
 
 # run window manager
 $wim
