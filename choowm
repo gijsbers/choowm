@@ -57,6 +57,7 @@ dswm
 dvtm
 dwemo
 dwm
+e16
 echinus
 eggwm
 enlightenment_start
@@ -81,6 +82,7 @@ jbwm
 jwm
 karmen
 kwin
+kwin5
 larswm
 lumina
 lwm
@@ -241,8 +243,8 @@ elif [[ -n $zenity ]]; then
     # construct a zenity dialog
     cat >>$temp <<-'EOF'
 	exec zenity --list \
-	    --width=400 \
-	    --height=400 \
+	    --width=450 \
+	    --height=450 \
 	    --hide-column=1 \
 	    --print-column=1 \
 	    --title="Choose window manager" \
@@ -283,8 +285,9 @@ trap '' 0
 # -n option only echoes
 [[ $dryrun = 1 ]] && exec echo "$wim"
 
-if [[ $wim =~ ^/ ]]; then
-    dir=$(dirname $wim)
+file=${wim%% *}
+if [[ $file =~ ^/ ]]; then
+    dir=$(dirname $file)
     PATH=$dir:$PATH
 fi
 
